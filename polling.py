@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from Prescott import Clamp, ClampArray
+from TermColour import Colours
 import time
 import os
 import serial
@@ -10,7 +11,7 @@ import sys
 
 CONST_CLAMP_RATING = 25
 #ideal NOTIFY_DIFF seems to be half device rated wattage for old-style lightbulbs
-NOTIFY_DIFF = 30
+NOTIFY_DIFF = 3
 LOOP_TIME = 1
 
 
@@ -43,14 +44,22 @@ while (True):
     else:
         oldlist = newlist
         newlist = poll_clamps(clamps)
+    #oldlist = sorted(oldlist.items(), key=lambda c: c['serial'])
+    #newlist = sorted(newlist.items(), key=lambda c: c['serial'])
+    oldlist.sort(key = lambda c: c['serial'])
+    newlist.sort(key = lambda c: c['serial'])
     for i in range(0, len(newlist)):
         oldpow = oldlist[i]['power']
         newpow = newlist[i]['power']
         powdiff = diff(oldpow, newpow)
         if (powdiff >= NOTIFY_DIFF):
-            print "Sensor "+oldlist[i]['serial']+" on "+oldlist[i]['port']+" changed by: "+str(powdiff)+"W!"
-            print "Sensor "+oldlist[i]['serial']+" was: "+str(oldpow)+"W, now: "+str(newpow)+"W."
+            print Colours.GREEN+"Sensor "+newlist[i]['serial']+" on "+newlist[i]['port']+" : "+str(round(newlist[i]['power'],1))+"W, changed by: "+str(round(powdiff,1))+"W"+Colours.ENDC	
+	#    print "Sensor "+oldlist[i]['serial']+" on "+oldlist[i]['port']+" changed by: "+str(powdiff)+"W!"
+        #    print "Sensor "+oldlist[i]['serial']+" was: "+str(oldpow)+"W, now: "+str(newpow)+"W."
+        else:
+            print "Sensor "+newlist[i]['serial']+" on "+newlist[i]['port']+" : "+str(round(newlist[i]['power']))+"W"
     time.sleep(LOOP_TIME)
+    os.system("clear")
     
 
 sys.exit()
